@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -O3 -DNDEBUG -shared -Wl,-soname,libpipellm.so -o libpipellm.so CMakeFiles/pipellm.dir/pipellm.cpp.o CMakeFiles/pipellm.dir/worker.cpp.o CMakeFiles/pipellm.dir/openssl.cpp.o CTR_device.o  -L/usr/local/Ascend/ascend-toolkit/latest/lib64 -lascendcl -lcrypto -ldl -lpthread

@@ -1,0 +1,13 @@
+# Target labels
+ ascendc_kernels_npu_preprocess
+# Source files and their labels
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_preprocess
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_preprocess.rule
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_preprocess-complete.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_preprocess-prefix/src/ascendc_kernels_npu_preprocess-stamp/ascendc_kernels_npu_preprocess-build.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_preprocess-prefix/src/ascendc_kernels_npu_preprocess-stamp/ascendc_kernels_npu_preprocess-configure.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_preprocess-prefix/src/ascendc_kernels_npu_preprocess-stamp/ascendc_kernels_npu_preprocess-download.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_preprocess-prefix/src/ascendc_kernels_npu_preprocess-stamp/ascendc_kernels_npu_preprocess-install.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_preprocess-prefix/src/ascendc_kernels_npu_preprocess-stamp/ascendc_kernels_npu_preprocess-mkdir.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_preprocess-prefix/src/ascendc_kernels_npu_preprocess-stamp/ascendc_kernels_npu_preprocess-patch.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_preprocess-prefix/src/ascendc_kernels_npu_preprocess-stamp/ascendc_kernels_npu_preprocess-update.rule

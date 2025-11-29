@@ -1,0 +1,13 @@
+# Target labels
+ ascendc_kernels_npu_aic_device
+# Source files and their labels
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_aic_device
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_aic_device.rule
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_aic_device-complete.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aic_device-prefix/src/ascendc_kernels_npu_aic_device-stamp/ascendc_kernels_npu_aic_device-build.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aic_device-prefix/src/ascendc_kernels_npu_aic_device-stamp/ascendc_kernels_npu_aic_device-configure.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aic_device-prefix/src/ascendc_kernels_npu_aic_device-stamp/ascendc_kernels_npu_aic_device-download.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aic_device-prefix/src/ascendc_kernels_npu_aic_device-stamp/ascendc_kernels_npu_aic_device-install.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aic_device-prefix/src/ascendc_kernels_npu_aic_device-stamp/ascendc_kernels_npu_aic_device-mkdir.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aic_device-prefix/src/ascendc_kernels_npu_aic_device-stamp/ascendc_kernels_npu_aic_device-patch.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aic_device-prefix/src/ascendc_kernels_npu_aic_device-stamp/ascendc_kernels_npu_aic_device-update.rule

@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/data/lzy/pipellm_acl/build/ascendc_kernels_npu_precompile-prefix/src/ascendc_kernels_npu_precompile-build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

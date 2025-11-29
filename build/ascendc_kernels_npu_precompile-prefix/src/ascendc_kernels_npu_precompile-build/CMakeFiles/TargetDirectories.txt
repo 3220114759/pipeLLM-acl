@@ -1,0 +1,4 @@
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_precompile-prefix/src/ascendc_kernels_npu_precompile-build/CMakeFiles/precompile_obj.dir
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_precompile-prefix/src/ascendc_kernels_npu_precompile-build/CMakeFiles/check_src_template.dir
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_precompile-prefix/src/ascendc_kernels_npu_precompile-build/CMakeFiles/edit_cache.dir
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_precompile-prefix/src/ascendc_kernels_npu_precompile-build/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,13 @@
+# Target labels
+ ascendc_kernels_npu_host
+# Source files and their labels
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_host
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_host.rule
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_host-complete.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_host-prefix/src/ascendc_kernels_npu_host-stamp/ascendc_kernels_npu_host-build.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_host-prefix/src/ascendc_kernels_npu_host-stamp/ascendc_kernels_npu_host-configure.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_host-prefix/src/ascendc_kernels_npu_host-stamp/ascendc_kernels_npu_host-download.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_host-prefix/src/ascendc_kernels_npu_host-stamp/ascendc_kernels_npu_host-install.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_host-prefix/src/ascendc_kernels_npu_host-stamp/ascendc_kernels_npu_host-mkdir.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_host-prefix/src/ascendc_kernels_npu_host-stamp/ascendc_kernels_npu_host-patch.rule
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_host-prefix/src/ascendc_kernels_npu_host-stamp/ascendc_kernels_npu_host-update.rule

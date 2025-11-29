@@ -1,0 +1,2 @@
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aic_device-prefix/src/ascendc_kernels_npu_aic_device-build/CMakeFiles/edit_cache.dir
+/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aic_device-prefix/src/ascendc_kernels_npu_aic_device-build/CMakeFiles/rebuild_cache.dir

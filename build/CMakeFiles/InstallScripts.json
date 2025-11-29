@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/data/lzy/pipellm_acl/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

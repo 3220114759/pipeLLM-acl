@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_aiv_device"
+		},
+		{
+			"file" : "/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_aiv_device.rule"
+		},
+		{
+			"file" : "/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_aiv_device-complete.rule"
+		},
+		{
+			"file" : "/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aiv_device-prefix/src/ascendc_kernels_npu_aiv_device-stamp/ascendc_kernels_npu_aiv_device-build.rule"
+		},
+		{
+			"file" : "/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aiv_device-prefix/src/ascendc_kernels_npu_aiv_device-stamp/ascendc_kernels_npu_aiv_device-configure.rule"
+		},
+		{
+			"file" : "/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aiv_device-prefix/src/ascendc_kernels_npu_aiv_device-stamp/ascendc_kernels_npu_aiv_device-download.rule"
+		},
+		{
+			"file" : "/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aiv_device-prefix/src/ascendc_kernels_npu_aiv_device-stamp/ascendc_kernels_npu_aiv_device-install.rule"
+		},
+		{
+			"file" : "/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aiv_device-prefix/src/ascendc_kernels_npu_aiv_device-stamp/ascendc_kernels_npu_aiv_device-mkdir.rule"
+		},
+		{
+			"file" : "/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aiv_device-prefix/src/ascendc_kernels_npu_aiv_device-stamp/ascendc_kernels_npu_aiv_device-patch.rule"
+		},
+		{
+			"file" : "/data/lzy/pipellm_acl/build/ascendc_kernels_npu_aiv_device-prefix/src/ascendc_kernels_npu_aiv_device-stamp/ascendc_kernels_npu_aiv_device-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"ascendc_kernels_npu_aiv_device"
+		],
+		"name" : "ascendc_kernels_npu_aiv_device"
+	}
+}

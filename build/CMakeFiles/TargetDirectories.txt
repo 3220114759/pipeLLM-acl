@@ -1,0 +1,16 @@
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_interface.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_precompile.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_preprocess.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_aic_device.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_aiv_device.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_merge_obj.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_host.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu_host_stub_obj.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/ascendc_kernels_npu.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/pipellm.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/edit_cache.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/rebuild_cache.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/list_install_components.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/install.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/install/local.dir
+/data/lzy/pipellm_acl/build/CMakeFiles/install/strip.dir

@@ -1,0 +1,170 @@
+2025-11-28 14:00:56 [INFO] [3744724] [3744724] [time_logger.h:28] DeviceContextEntry  start
+2025-11-28 14:00:56 [INFO] [3744724] [3744727] [parser.cpp:51] loop: /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/data/lpmFreqConv.data.4.slice_0, file size: 799200
+2025-11-28 14:00:56 [INFO] [3744724] [3744730] [parser.cpp:51] loop: /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/data/stars_soc.data.4.slice_0, file size: 2336768
+2025-11-28 14:00:56 [INFO] [3744724] [3744727] [parser.cpp:54] total size: 799200
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:51] loop: /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/data/ffts_profile.data.4.slice_0, file size: 3021440
+2025-11-28 14:00:56 [INFO] [3744724] [3744730] [parser.cpp:51] loop: /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/data/stars_soc.data.4.slice_1, file size: 2606976
+2025-11-28 14:00:56 [INFO] [3744724] [3744727] [parser.cpp:159] Parse filePrefix is: lpmFreqConv., the number of files is: 1, and the total size of all files is: 799200
+2025-11-28 14:00:56 [INFO] [3744724] [3744730] [parser.cpp:54] total size: 4943744
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:51] loop: /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/data/ffts_profile.data.4.slice_1, file size: 2230784
+2025-11-28 14:00:56 [INFO] [3744724] [3744730] [parser.cpp:159] Parse filePrefix is: stars_soc., the number of files is: 2, and the total size of all files is: 4943744
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:51] loop: /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/data/ffts_profile.data.4.slice_2, file size: 2364032
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:51] loop: /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/data/ffts_profile.data.4.slice_3, file size: 2231936
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:51] loop: /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/data/ffts_profile.data.4.slice_4, file size: 2362880
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:51] loop: /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/data/ffts_profile.data.4.slice_5, file size: 393216
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:54] total size: 12604288
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:159] Parse filePrefix is: ffts_profile, the number of files is: 6, and the total size of all files is: 12604288
+2025-11-28 14:00:56 [INFO] [3744724] [3744728] [parser.cpp:120] notify: no files pattern, don't need to parse
+2025-11-28 14:00:56 [INFO] [3744724] [3744728] [ts_track_parser.cpp:65] TsTrack structCount: 0
+2025-11-28 14:00:56 [INFO] [3744724] [3744728] [parser.cpp:177] Parser is completed!
+2025-11-28 14:00:56 [INFO] [3744724] [3744727] [parser.cpp:87] Data has been read to the memory successfully!
+2025-11-28 14:00:56 [INFO] [3744724] [3744727] [freq_parser.cpp:67] FreqProfileData structCount is : 900
+2025-11-28 14:00:56 [INFO] [3744724] [3744727] [freq_parser.cpp:95] Freq.data parser is completed, begin to save data into dataInventory!
+2025-11-28 14:00:56 [INFO] [3744724] [3744727] [parser.cpp:177] Parser is completed!
+2025-11-28 14:00:56 [INFO] [3744724] [3744730] [parser.cpp:87] Data has been read to the memory successfully!
+2025-11-28 14:00:56 [INFO] [3744724] [3744730] [stars_soc_parser.cpp:73] StarsSoc structCount: 77246
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:87] Data has been read to the memory successfully!
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [ffts_profile_parser.cpp:75] FftsProfileData structCount is : 98471
+2025-11-28 14:00:56 [WARN] [3744724] [3744726] [chip4_pmu_parser_item.cpp:50] An overflow in the operator taskId is 478, streamId is 23, contextId is
+2025-11-28 14:00:56 [WARN] [3744724] [3744726] [chip4_pmu_parser_item.cpp:50] An overflow in the operator taskId is 23, streamId is 8674, contextId is
+2025-11-28 14:00:56 [WARN] [3744724] [3744726] [chip4_pmu_parser_item.cpp:50] An overflow in the operator taskId is 483, streamId is 23, contextId is
+2025-11-28 14:00:56 [WARN] [3744724] [3744726] [chip4_pmu_parser_item.cpp:50] An overflow in the operator taskId is 485, streamId is 23, contextId is
+2025-11-28 14:00:56 [WARN] [3744724] [3744726] [chip4_pmu_parser_item.cpp:50] An overflow in the operator taskId is 487, streamId is 23, contextId is
+2025-11-28 14:00:56 [WARN] [3744724] [3744726] [chip4_pmu_parser_item.cpp:50] An overflow in the operator taskId is 23, streamId is 8686, contextId is
+2025-11-28 14:00:56 [INFO] [3744724] [3744730] [parser.cpp:177] Parser is completed!
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [ffts_profile_parser.cpp:89] Ffts_profile.data parser is completed, begin to save data into dataInventory!
+2025-11-28 14:00:56 [INFO] [3744724] [3744726] [parser.cpp:177] Parser is completed!
+2025-11-28 14:00:56 [INFO] [3744724] [3744725] [process_control.cpp:189] Level[0]Release Data Types: 
+2025-11-28 14:00:56 [INFO] [3744724] [3744734] [step_trace_process.cpp:197] Start to process step trace data
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [time_logger.h:28] LogModeling::SplitLogGroups  start
+2025-11-28 14:00:56 [INFO] [3744724] [3744732] [acc_pmu_persistence.cpp:57] Start to process /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/sqlite/acc_pmu.db.
+2025-11-28 14:00:56 [INFO] [3744724] [3744733] [freq_persistence.cpp:46] Start to process /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/sqlite/freq.db.
+2025-11-28 14:00:56 [WARN] [3744724] [3744734] [step_trace_process.cpp:200] stepData is empty
+2025-11-28 14:00:56 [INFO] [3744724] [3744733] [persistence_utils.h:39] Processor Save FreqParse Data.
+2025-11-28 14:00:56 [INFO] [3744724] [3744732] [acc_pmu_persistence.cpp:61] There is no acc pmu data don't need to persistence!
+2025-11-28 14:00:56 [INFO] [3744724] [3744733] [db_runner.cpp:45] Start create FreqParse
+2025-11-28 14:00:56 [INFO] [3744724] [3744733] [db_runner.cpp:54] create FreqParse success
+2025-11-28 14:00:56 [INFO] [3744724] [3744733] [db_runner.h:57] Start insert data to FreqParse
+2025-11-28 14:00:56 [INFO] [3744724] [3744735] [pmu_modeling.cpp:48] PMU modeling has done!
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [time_logger.h:35] LogModeling::SplitLogGroups  end, cost time = 7 ms
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [log_modeling.cpp:152] HalLogData size:77246
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [log_modeling.cpp:153] acsqS stream:3, total:36023
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [log_modeling.cpp:154] acsqE stream:3, total:36023
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [log_modeling.cpp:155] fftsS stream:1, total:2600
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [log_modeling.cpp:156] fftsE stream:1, total:2600
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [time_logger.h:28] LogModeling::AddToDeviceTask  start
+2025-11-28 14:00:56 [INFO] [3744724] [3744733] [db_runner.h:64] insert data to FreqParse success
+2025-11-28 14:00:56 [INFO] [3744724] [3744733] [freq_persistence.cpp:55] Process FreqParse done!
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [log_modeling.cpp:224] ACSQ matched count:36023
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [log_modeling.cpp:234] FFTS matched count:2600
+2025-11-28 14:00:56 [INFO] [3744724] [3744731] [time_logger.h:35] LogModeling::AddToDeviceTask  end, cost time = 63 ms
+2025-11-28 14:00:56 [INFO] [3744724] [3744725] [process_control.cpp:189] Level[1]Release Data Types: St6vectorIN8Analysis6Domain10HalLogDataESaIS2_EE St6vectorIN8Analysis6Domain12HalTrackDataESaIS2_EE 
+2025-11-28 14:00:56 [INFO] [3744724] [3744736] [db_runner.h:71] Start query data
+2025-11-28 14:00:56 [INFO] [3744724] [3744736] [db_runner.h:78] Query data success: SELECT stream_id, request_id, batch_id, task_id, context_ids, model_id, task_type, connection_id FROM HostTask where device_id = 4
+2025-11-28 14:00:56 [INFO] [3744724] [3744736] [db_runner.h:71] Start query data
+2025-11-28 14:00:56 [INFO] [3744724] [3744736] [db_runner.h:78] Query data success: SELECT stream_id, batch_id, task_id, context_id, block_dim, mix_block_dim FROM TaskInfo where device_id = 4
+2025-11-28 14:00:56 [INFO] [3744724] [3744736] [load_host_data.cpp:101] Read host geinfo 0 not in table.
+2025-11-28 14:00:56 [WARN] [3744724] [3744736] [load_host_data.cpp:52] There is no /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/..///host//sqlite/hccl.db
+2025-11-28 14:00:56 [WARN] [3744724] [3744736] [load_host_data.cpp:52] There is no /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/..///host//sqlite/hccl.db
+2025-11-28 14:00:56 [INFO] [3744724] [3744725] [process_control.cpp:189] Level[2]Release Data Types: 
+2025-11-28 14:00:56 [INFO] [3744724] [3744738] [pmu_association.cpp:38] context pmu count is : 31551
+2025-11-28 14:00:56 [INFO] [3744724] [3744738] [pmu_association.cpp:39] block pmu count is : 66920
+2025-11-28 14:00:56 [INFO] [3744724] [3744738] [pmu_association.cpp:246] The acceleratorType of PMU is MIX
+2025-11-28 14:00:57 [INFO] [3744724] [3744737] [ascend_task_association.cpp:184] Found 38623 host device matched task, generate 38623 topDownTask
+2025-11-28 14:01:10 [INFO] [3744724] [3744738] [pmu_association.cpp:186] Context PMU has been calculated!
+2025-11-28 14:01:11 [INFO] [3744724] [3744725] [process_control.cpp:189] Level[3]Release Data Types: St3mapIN8Analysis6Domain6TaskIdESt6vectorINS1_8HostTaskESaIS4_EESt4lessIS2_ESaISt4pairIKS2_S6_EEE St6vectorIN8Analysis6Domain10HalPmuDataESaIS2_EE St6vectorIN8Analysis6Domain14HalFreqLpmDataESaIS2_EE 
+2025-11-28 14:01:11 [INFO] [3744724] [3744780] [hccl_calculator.cpp:51] Start Hccl calculator ProcessEntry.
+2025-11-28 14:01:11 [INFO] [3744724] [3744780] [hccl_calculator.cpp:77] Start Hccl calculator GetHcclData.
+2025-11-28 14:01:11 [INFO] [3744724] [3744780] [hccl_calculator.cpp:106] Start merge hccl task and ascend task.
+2025-11-28 14:01:11 [INFO] [3744724] [3744779] [metric_summary_persistence.cpp:273] Start to process /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/sqlite/metric_summary.db.
+2025-11-28 14:01:11 [INFO] [3744724] [3744779] [db_runner.cpp:45] Start create MetricSummary
+2025-11-28 14:01:11 [INFO] [3744724] [3744779] [db_runner.cpp:54] create MetricSummary success
+2025-11-28 14:01:11 [INFO] [3744724] [3744780] [hccl_calculator.cpp:205] Start merge hccl op data.
+2025-11-28 14:01:11 [INFO] [3744724] [3744780] [hccl_calculator.cpp:274] Start UpdateHcclOpNameByGroupName.
+2025-11-28 14:01:11 [INFO] [3744724] [3744780] [hccl_calculator.cpp:300] Start UpdateHcclBandwidth.
+2025-11-28 14:01:11 [INFO] [3744724] [3744780] [hccl_calculator.cpp:376] Start GetHcclStatisticsData.
+2025-11-28 14:01:11 [WARN] [3744724] [3744780] [hccl_calculator.cpp:378] No op type in hccl data.
+2025-11-28 14:01:11 [INFO] [3744724] [3744780] [hccl_calculator.cpp:433] Start inject hccl data.
+2025-11-28 14:01:11 [INFO] [3744724] [3744779] [metric_summary_persistence.cpp:281] Process MetricSummary done!
+2025-11-28 14:01:11 [INFO] [3744724] [3744725] [process_control.cpp:189] Level[4]Release Data Types: St3mapIN8Analysis6Domain6TaskIdESt6vectorINS1_10DeviceTaskESaIS4_EESt4lessIS2_ESaISt4pairIKS2_S6_EEE St6vectorIN8Analysis6Domain8HcclTaskESaIS2_EE 
+2025-11-28 14:01:11 [INFO] [3744724] [3744782] [ascend_task_persistence.cpp:72] Start to process /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4/sqlite/ascend_task.db.
+2025-11-28 14:01:11 [INFO] [3744724] [3744781] [device_hccl_persistence.cpp:129] Start to dump device hccl data.
+2025-11-28 14:01:11 [WARN] [3744724] [3744781] [device_hccl_persistence.cpp:48] Hccl op data is empty.
+2025-11-28 14:01:11 [WARN] [3744724] [3744781] [device_hccl_persistence.cpp:76] Hccl task data is empty.
+2025-11-28 14:01:11 [WARN] [3744724] [3744781] [device_hccl_persistence.cpp:108] Hccl statistics data is empty.
+2025-11-28 14:01:11 [INFO] [3744724] [3744782] [persistence_utils.h:39] Processor Save AscendTask Data.
+2025-11-28 14:01:11 [INFO] [3744724] [3744782] [db_runner.cpp:45] Start create AscendTask
+2025-11-28 14:01:11 [INFO] [3744724] [3744782] [db_runner.cpp:54] create AscendTask success
+2025-11-28 14:01:11 [INFO] [3744724] [3744782] [db_runner.h:57] Start insert data to AscendTask
+2025-11-28 14:01:11 [INFO] [3744724] [3744782] [db_runner.h:64] insert data to AscendTask success
+2025-11-28 14:01:11 [INFO] [3744724] [3744782] [ascend_task_persistence.cpp:81] Process AscendTask done!
+2025-11-28 14:01:11 [INFO] [3744724] [3744725] [process_control.cpp:189] Level[5]Release Data Types: St6vectorI11TopDownTaskSaIS0_EE St6vectorIN8Analysis6Domain14DeviceHcclTaskESaIS2_EE St6vectorIN8Analysis6Domain14HcclStatisticsESaIS2_EE St6vectorIN8Analysis6Domain6HcclOpESaIS2_EE 
+2025-11-28 14:01:11 [INFO] [3744724] [3744724] [device_context.cpp:135] stat info: ===============================================================================
+deivce file in /data/lzy/pipellm_acl/PROF_000001_20251128135916810_BRIEIAOEJKBPDEDA/device_4
+chip id: 5, process levels:6
+-------------------------------------------------------------------------------
+level[0] generalResult:true, process num:5
+	process0[FreqParser]:return: 0x0, mandatory:true
+		dependProcessNames: 
+		startTime:757,445,306,604 us, duration: 3,837 us
+	process1[StarsSocParser]:return: 0x0, mandatory:true
+		dependProcessNames: 
+		startTime:757,445,306,634 us, duration: 124,572 us
+	process2[DeviceTaskProcess]:return: 0x0, mandatory:true
+		dependProcessNames: 
+		startTime:757,445,306,665 us, duration: 36 us
+	process3[FftsProfileParser]:return: 0x0, mandatory:true
+		dependProcessNames: 
+		startTime:757,445,306,694 us, duration: 157,642 us
+	process4[TsTrackParser]:return: 0x0, mandatory:true
+		dependProcessNames: 
+		startTime:757,445,306,714 us, duration: 725 us
+-------------------------------------------------------------------------------
+level[1] generalResult:true, process num:5
+	process0[FreqPersistence]:return: 0x0, mandatory:true
+		dependProcessNames: FreqParser, 
+		startTime:757,445,465,440 us, duration: 13,831 us
+	process1[PmuModeling]:return: 0x0, mandatory:true
+		dependProcessNames: FftsProfileParser, TsTrackParser, 
+		startTime:757,445,465,445 us, duration: 3,379 us
+	process2[AccPmuPersistence]:return: 0x0, mandatory:true
+		dependProcessNames: StarsSocParser, 
+		startTime:757,445,465,447 us, duration: 961 us
+	process3[Domain::LogModeling]:return: 0x0, mandatory:true
+		dependProcessNames: StarsSocParser, TsTrackParser, 
+		startTime:757,445,465,453 us, duration: 71,143 us
+	process4[StepTraceProcess]:return: 0x0, mandatory:false
+		dependProcessNames: TsTrackParser, 
+		startTime:757,445,465,460 us, duration: 140 us
+-------------------------------------------------------------------------------
+level[2] generalResult:true, process num:1
+	process0[LoadHostData]:return: 0x0, mandatory:false
+		dependProcessNames: Domain::LogModeling, 
+		startTime:757,445,537,685 us, duration: 136,611 us
+-------------------------------------------------------------------------------
+level[3] generalResult:true, process num:2
+	process0[PmuAssociation]:return: 0x0, mandatory:true
+		dependProcessNames: LoadHostData, PmuModeling, 
+		startTime:757,445,674,650 us, duration: 14,548,324 us
+	process1[AscendTaskAssociation]:return: 0x0, mandatory:true
+		dependProcessNames: LoadHostData, 
+		startTime:757,445,674,657 us, duration: 504,346 us
+-------------------------------------------------------------------------------
+level[4] generalResult:true, process num:2
+	process0[HcclCalculator]:return: 0x0, mandatory:true
+		dependProcessNames: AscendTaskAssociation, LoadHostData, 
+		startTime:757,460,249,644 us, duration: 104,519 us
+	process1[MetricSummaryPersistence]:return: 0x0, mandatory:true
+		dependProcessNames: PmuAssociation, 
+		startTime:757,460,249,655 us, duration: 130,272 us
+-------------------------------------------------------------------------------
+level[5] generalResult:true, process num:2
+	process0[AscendTaskPersistence]:return: 0x0, mandatory:true
+		dependProcessNames: HcclCalculator, 
+		startTime:757,460,400,209 us, duration: 84,944 us
+	process1[DeviceHcclPersistence]:return: 0x0, mandatory:true
+		dependProcessNames: HcclCalculator, 
+		startTime:757,460,400,667 us, duration: 136 us
+
+
+2025-11-28 14:01:11 [INFO] [3744724] [3744724] [time_logger.h:35] DeviceContextEntry  end, cost time = 15186 ms
