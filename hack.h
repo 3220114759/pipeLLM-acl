@@ -207,6 +207,33 @@ static inline aclError real_aclrtDestroyEvent(aclrtEvent event)
     if (!func_entry) return ACL_ERROR_LD_SO_NOT_LOADED;
     return func_entry(event);
 }
+
+// [新增] aclrtGetDeviceUtilizationRate
+static inline aclError real_aclrtGetDeviceUtilizationRate(int32_t deviceId, aclrtUtilizationInfo *utilizationInfo)
+{
+    using func_ptr = aclError (*)(int32_t, aclrtUtilizationInfo *);
+    static auto func_entry = reinterpret_cast<func_ptr>(get_symbol_acl("aclrtGetDeviceUtilizationRate"));
+    if (!func_entry) return ACL_ERROR_LD_SO_NOT_LOADED;
+    return func_entry(deviceId, utilizationInfo);
+}
+
+// [新增] aclrtGetDeviceResLimit
+static inline aclError real_aclrtGetDeviceResLimit(int32_t deviceId, aclrtDevResLimitType type, uint32_t *value)
+{
+    using func_ptr = aclError (*)(int32_t, aclrtDevResLimitType, uint32_t *);
+    static auto func_entry = reinterpret_cast<func_ptr>(get_symbol_acl("aclrtGetDeviceResLimit"));
+    if (!func_entry) return ACL_ERROR_LD_SO_NOT_LOADED;
+    return func_entry(deviceId, type, value);
+}
+
+// [新增] aclrtGetDevice — 获取当前绑定的 device ID
+static inline aclError real_aclrtGetDevice(int32_t *deviceId)
+{
+    using func_ptr = aclError (*)(int32_t *);
+    static auto func_entry = reinterpret_cast<func_ptr>(get_symbol_acl("aclrtGetDevice"));
+    if (!func_entry) return ACL_ERROR_LD_SO_NOT_LOADED;
+    return func_entry(deviceId);
+}
  
  /*
   * ==========================================================================
@@ -214,32 +241,31 @@ static inline aclError real_aclrtDestroyEvent(aclrtEvent event)
   * ==========================================================================
   */
  
- static inline void *get_symbol_openssl(const char *name)
- {
-     // 使用 static 确保只在第一次调用时 dlopen
-     static void *handle = nullptr;
-     if (handle == nullptr) {
-        //  const char *paths[] = {"libcrypto.so.3", "libcrypto.so.1.1", "libcrypto.so.1.0.0", "libcrypto.so"};
-        const char *paths[] = {"/home/lzy/miniconda3/envs/npu_env/lib/libcrypto.so.1.1"};
-         for (const char* path : paths) {
-             handle = dlopen(path, RTLD_NOW | RTLD_LOCAL);
-             if (handle) {
-                 fprintf(stderr, "[PipeLLM Info] 成功加载 OpenSSL 库: %s\n", path);
-                 break;
-             }
-         }
-         if (!handle) {
-             fprintf(stderr, "[PipeLLM Error] 关键错误: 无法 dlopen libcrypto.so (尝试了多种常见的名称). 错误: %s\n", dlerror());
-             return nullptr;
-         }
-     }
-     
-     void* symbol = dlsym(handle, name);
-     if (!symbol) {
-         fprintf(stderr, "[PipeLLM Error] 关键错误: 无法 dlsym 符号 %s from libcrypto. 错误: %s\n", name, dlerror());
-     }
-     return symbol;
- }
+static inline void *get_symbol_openssl(const char *name)
+  {
+      // 使用 static 确保只在第一次调用时 dlopen
+      static void *handle = nullptr;
+      if (handle == nullptr) {
+          const char *paths[] = {"libcrypto.so.1.1", "libcrypto.so.3", "libcrypto.so"};
+          for (const char* path : paths) {
+              handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+              if (handle) {
+                  fprintf(stderr, "[PipeLLM Info] 成功加载 OpenSSL 库: %s\n", path);
+                  break;
+              }
+          }
+          if (!handle) {
+              fprintf(stderr, "[PipeLLM Error] 关键错误: 无法 dlopen libcrypto.so (尝试了多种常见的名称). 错误: %s\n", dlerror());
+              return nullptr;
+          }
+      }
+      
+      void* symbol = dlsym(handle, name);
+      if (!symbol) {
+          fprintf(stderr, "[PipeLLM Error] 关键错误: 无法 dlsym 符号 %s from libcrypto. 错误: %s\n", name, dlerror());
+      }
+      return symbol;
+  }
  
  /*
   * 注意：以下所有的 real_EVP_... 函数定义都保持原样，无需改动

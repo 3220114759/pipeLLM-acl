@@ -5,10 +5,11 @@
 
  #include "pipellm.h"
  #include "hack.h"
+ #include "resource_monitor.h"
  #include <unistd.h>
  #include <cstring>
  #include <cassert>
- #include <chrono> // 添加 chrono 头文件 (您的代码中使用了)
+ #include <chrono>
  #include <sys/syscall.h>
 #include <unistd.h>
 #include <atomic>
@@ -40,16 +41,33 @@ static void busy_wait_us(long microseconds) {
 }
 #define LOG_PIPE(fmt, ...) fprintf(stderr, "[%lld][TID:%ld] " fmt "\n", current_micros(), get_tid(), ##__VA_ARGS__)
 
-extern "C" void add_custom_do(
-    uint32_t blockDim, 
-    void *stream, 
-    uint8_t *x, 
-    uint8_t *y, 
-    uint8_t *iv, 
-    uint8_t *z, 
-    uint32_t totallength, 
-    uint32_t mode
-);
+// 声明 add_custom_do 函数指针类型
+typedef void (*AddCustomDo_t)(uint32_t, void*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint32_t, uint32_t);
+static AddCustomDo_t g_add_custom_do = nullptr;
+static void* g_kernel_lib_handle = nullptr;
+
+static void init_npu_kernel() {
+    if (g_add_custom_do) return;
+    
+    const char* kernel_lib_path = "/data/lzy/ops/aes-ctr/build/lib/libascendc_kernels_npu.so";
+    g_kernel_lib_handle = dlopen(kernel_lib_path, RTLD_NOW | RTLD_GLOBAL);
+    if (!g_kernel_lib_handle) {
+        fprintf(stderr, "[Worker] Failed to load kernel lib: %s\n", dlerror());
+        return;
+    }
+    
+    // 尝试C++符号
+    g_add_custom_do = (AddCustomDo_t)dlsym(g_kernel_lib_handle, "_Z13add_custom_dojPvPhS0_S0_S0_jj");
+    if (!g_add_custom_do) {
+        g_add_custom_do = (AddCustomDo_t)dlsym(g_kernel_lib_handle, "add_custom_do");
+    }
+    
+    if (g_add_custom_do) {
+        fprintf(stderr, "[Worker] NPU kernel loaded: %p\n", (void*)g_add_custom_do);
+    } else {
+        fprintf(stderr, "[Worker] Failed to find add_custom_do: %s\n", dlerror());
+    }
+}
 
 struct GCBatch {
     aclrtEvent event;           // 用于标记这一批次何时完成
@@ -287,10 +305,18 @@ void process_garbage_collection(std::deque<GCBatch>& gc_queue) {
      aclrtStream stream;
      void *fake_src; 
  
-     // 等待 Context
-     while (g_main_ctx == nullptr) { usleep(1000); }
-     assert(aclrtSetCurrentContext(g_main_ctx) == ACL_SUCCESS);
-     assert(real_aclrtCreateStream(&stream) == ACL_SUCCESS); 
+      // 等待 Context
+      while (g_main_ctx == nullptr) { usleep(1000); }
+      assert(aclrtSetCurrentContext(g_main_ctx) == ACL_SUCCESS);
+      {
+          int32_t cur_dev = -1;
+          real_aclrtGetDevice(&cur_dev);
+          int32_t dev_count = 0;
+          real_aclrtGetDeviceCount(&dev_count);
+          fprintf(stderr, "[CommitWorker] aclrtGetDevice=%d, deviceCount=%d\n", cur_dev, dev_count);
+          fflush(stderr);
+      }
+      assert(real_aclrtCreateStream(&stream) == ACL_SUCCESS); 
      assert(real_aclrtMallocHost(&fake_src, 1ul << 30) == ACL_SUCCESS); 
      
      // 预分配临时显存
@@ -320,9 +346,11 @@ void process_garbage_collection(std::deque<GCBatch>& gc_queue) {
      // [新增] 垃圾回收队列
      std::deque<GCBatch> gc_queue;
  
-     fprintf(stderr, "[Commit Worker] 🚀 启动成功 (Pipeline Mode)\n");
- 
-     while (g_running.load()) {
+    fprintf(stderr, "[Commit Worker] 🚀 启动成功 (Pipeline Mode)\n");
+
+    int ai_core_busy_count = 0;
+
+    while (g_running.load()) {
          
          // 1. 尝试清理垃圾 (非阻塞)
          process_garbage_collection(gc_queue);
@@ -433,37 +461,66 @@ void process_garbage_collection(std::deque<GCBatch>& gc_queue) {
                                  // 为了一致性，放入 GC。
                              } 
                              else {
-                                 // 1. H2D (异步)
-                                 // 注意：cipher_buffer 不能立即 delete
-                                 real_aclrtMemcpyAsync(reusable_temp_in, chunk_size, cipher_buffer, chunk_size, ACL_MEMCPY_HOST_TO_DEVICE, stream);
-                                 
-                                 // 2. Kernel (异步)
-                                 if (g_dev_key && g_dev_iv) {
-                                     uint32_t blockDim = 8; 
-                                     uint32_t mode = 1; // CTR 解密
-                                     printf("算子调用，大小为%d\n",(int)chunk_size);
-                                     add_custom_do(
+                                // ==================== 最终修复版（32B 对齐 + 调试打印） ====================
+                                size_t kernel_size = (chunk_size + 31) & ~31;  // 强制 32 字节对齐
+
+                                // 1. H2D（只拷贝真实数据）
+                                real_aclrtMemcpyAsync(reusable_temp_in, chunk_size, cipher_buffer, chunk_size, 
+                                                      ACL_MEMCPY_HOST_TO_DEVICE, stream);
+
+                                // padding 区域补零
+                                if (kernel_size > chunk_size) {
+                                    uint8_t zero_pad[32] = {0};
+                                    real_aclrtMemcpyAsync((uint8_t*)reusable_temp_in + chunk_size, 
+                                                          kernel_size - chunk_size,
+                                                          zero_pad, kernel_size - chunk_size,
+                                                          ACL_MEMCPY_HOST_TO_DEVICE, stream);
+                                }
+
+                                 // 2. Kernel（空闲感知调度）
+                                 if (!g_add_custom_do) {
+                                     init_npu_kernel();
+                                 }
+                                 // 先进行利用率检测（不依赖 kernel 是否就绪）
+                                 {
+                                     static int idle_log_count = 0;
+                                     int32_t cur_dev = 0;
+                                     real_aclrtGetDevice(&cur_dev);
+                                     idle_log_count++;
+                                     if (idle_log_count % 10 == 1 || !is_ai_core_idle(cur_dev)) {
+                                         log_device_utilization(cur_dev);
+                                     }
+                                 }
+                                 if (g_add_custom_do && g_dev_key && g_dev_iv) {
+                                     uint32_t blockDim = 1;
+                                     uint32_t mode = 0;
+                                     int32_t cur_dev = 0;
+                                     real_aclrtGetDevice(&cur_dev);
+                                     bool ai_core_available = is_ai_core_idle(cur_dev);
+                                     if (!ai_core_available) {
+                                         blockDim = 1;
+                                     } else {
+                                         blockDim = (kernel_size > 131072) ? 8
+                                                  : (kernel_size > 32768)  ? 4
+                                                  : (kernel_size > 4096)   ? 2
+                                                                           : 1;
+                                     }
+                                     g_add_custom_do(
                                          blockDim,
                                          stream,
                                          (uint8_t*)reusable_temp_in,
                                          (uint8_t*)g_dev_key,
                                          (uint8_t*)g_dev_iv,
                                          (uint8_t*)reusable_temp_out,
-                                         (uint32_t)chunk_size,
+                                         (uint32_t)kernel_size,
                                          mode
                                      );
                                  }
- 
-                                 // 3. D2D (异步)
-                                 real_aclrtMemcpyAsync(base_dst, chunk_size, reusable_temp_out, chunk_size, ACL_MEMCPY_DEVICE_TO_DEVICE, stream);
- 
-                                 // 4. 处理非 16 字节对齐的尾部
-                                 size_t remainder = chunk_size % 16;
-                                 if (remainder > 0) {
-                                     size_t aligned_len = chunk_size - remainder;
-                                     real_aclrtMemcpyAsync(base_dst + aligned_len, remainder, base_src + aligned_len, remainder, ACL_MEMCPY_HOST_TO_DEVICE, stream);
-                                 }
-                             }
+
+                                // 3. D2D（只拷贝真实长度）
+                                real_aclrtMemcpyAsync(base_dst, chunk_size, reusable_temp_out, chunk_size, 
+                                                      ACL_MEMCPY_DEVICE_TO_DEVICE, stream);
+                            }
                              
                              // [关键修改]
                              // 不再立即 delete，而是加入当前 Batch
@@ -497,9 +554,16 @@ void process_garbage_collection(std::deque<GCBatch>& gc_queue) {
              if (task.sync_event != nullptr) {
                 // 在 worker 的流 (stream) 上记录 event
                 // 意义：当 NPU 执行完上面的 H2D 之后，触发这个 event
-                assert(real_aclrtRecordEvent(task.sync_event, stream) == ACL_SUCCESS);
-                if (task.submitted_flag != nullptr) {
-                    task.submitted_flag->store(true);
+                aclError ret = real_aclrtRecordEvent(task.sync_event, stream);
+                if (ret != ACL_SUCCESS) {
+                    fprintf(stderr, "[PipeLLM ERROR] RecordEvent failed ret=%d (kernel 之前可能已出错)\n", ret);
+                    real_aclrtSynchronizeStream(stream);
+                    // 不要 assert！直接跳过或标记失败
+                    // continue;   // 如果在循环里
+                } else {
+                    if (task.submitted_flag != nullptr) {
+                        task.submitted_flag->store(true);
+                    }
                 }
             }
          }

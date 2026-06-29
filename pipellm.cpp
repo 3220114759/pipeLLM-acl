@@ -13,6 +13,8 @@
 #include <atomic>
 std::mutex g_ctx_map_mutex;
 static bool enable_encrypt = false;
+static bool enable_h2d_encrypt = false;
+static bool enable_d2h_encrypt = false;
 static bool enable_decrypt = false;
 extern size_t encrypt_magic_sz = 0xabcde;
 extern size_t decrypt_magic_sz = 0xabcde;
@@ -38,6 +40,7 @@ std::thread *decrypt_manager_threads[decrypt_workers_num_max];
 
 Predictor predictor;
 void sync_predictor();
+// 适配 add_custom_do: (uint32_t blockDim, void* stream, uint8_t* input, uint8_t* key, uint8_t* iv, uint8_t* output, uint32_t totalLength, uint32_t mode)
 typedef void (*LaunchAESKernel_t)(void*, void*, void*, void*, void*, uint32_t);
 LaunchAESKernel_t g_launch_kernel = nullptr;
 static void* g_aes_lib_handle = nullptr;
@@ -46,48 +49,55 @@ void* g_dev_iv = nullptr;
 
 std::atomic<bool> g_running(true);
 
-void __attribute__((destructor)) pipellm_fini() {
-    fprintf(stderr, "[PipeLLM] 🛑 正在停止 Worker 线程...\n");
-    g_running = false;
-    // 稍微等一下让线程有机会退出
-    usleep(200000); 
-    fprintf(stderr, "[PipeLLM] 👋 PipeLLM 退出完成\n");
-}
-
-// [修改加载函数，填入你 .so 的绝对路径]
-// void load_aes_library() {
-//     if (g_launch_kernel) return;
-
-//     // 1. 定义路径 (请确保这些路径存在！)
-//     const char* kernel_lib_path = "/data/lzy/pipellm_acl/libascendc_kernels_npu.so";
-//     const char* wrapper_lib_path = "/data/lzy/pipellm_acl/libaes_npu_lib.so"; 
-
-//     fprintf(stderr, "[PipeLLM] 🔄 正在加载 NPU 算子库...\n");
-
-//     // 2. [关键步骤] 先加载底层 Kernel 库
-//     // 使用 RTLD_GLOBAL 让 wrapper 库能看到 add_custom_do 符号
-//     g_ascendc_kernels_handle = dlopen(kernel_lib_path, RTLD_LAZY | RTLD_GLOBAL);
-//     if (!g_ascendc_kernels_handle) {
-//         fprintf(stderr, "[PipeLLM] ❌ 加载 Kernel 库失败: %s\n", dlerror());
-//         return;
-//     }
-
-//     // 3. 再加载 Wrapper 库
-//     g_aes_lib_handle = dlopen(wrapper_lib_path, RTLD_LAZY);
-//     if (!g_aes_lib_handle) {
-//         fprintf(stderr, "[PipeLLM] ❌ 加载 Wrapper 库失败: %s\n", dlerror());
-//         return;
-//     }
-    
-//     // 4. 获取函数符号
-//     g_launch_kernel = (LaunchAESKernel_t)dlsym(g_aes_lib_handle, "LaunchAESKernel");
-//     if (!g_launch_kernel) {
-//         fprintf(stderr, "[PipeLLM] ❌ 无法找到 LaunchAESKernel 符号: %s\n", dlerror());
-//     } else {
-//         fprintf(stderr, "[PipeLLM] ✅ 成功加载 NPU 加解密算子库\n");
-//         fprintf(stderr, "[PipeLLM]    Addr: %p\n", (void*)g_launch_kernel);
-//     }
+// void __attribute__((destructor)) pipellm_fini() {
+//     fprintf(stderr, "[PipeLLM] 🛑 正在停止 Worker 线程...\n");
+//     g_running = false;
+//     // 稍微等一下让线程有机会退出
+//     usleep(200000); 
+//     fprintf(stderr, "[PipeLLM] 👋 PipeLLM 退出完成\n");
 // }
+
+// [修改加载函数，加载新NPU算子]
+static void load_aes_library() {
+    if (g_launch_kernel) return;
+
+    fprintf(stderr, "[PipeLLM] 🔄 正在加载 NPU 算子库...\n");
+
+    // 1. 先加载 ACL 库 (RTLD_GLOBAL)
+    void* acl_handle = dlopen("libascendcl.so", RTLD_NOW | RTLD_GLOBAL);
+    if (!acl_handle) {
+        acl_handle = dlopen("/usr/local/Ascend/ascend-toolkit/latest/lib64/libascendcl.so", RTLD_NOW | RTLD_GLOBAL);
+    }
+    if (!acl_handle) {
+        fprintf(stderr, "[PipeLLM] ⚠️ ACL库加载失败（非致命）: %s\n", dlerror());
+    }
+
+    // 2. 加载 kernel 库并获取符号
+    const char* kernel_lib_path = "/data/lzy/ops/aes-ctr/build/lib/libascendc_kernels_npu.so";
+    void* kernel_handle = dlopen(kernel_lib_path, RTLD_NOW | RTLD_GLOBAL);
+    if (!kernel_handle) {
+        fprintf(stderr, "[PipeLLM] ❌ 加载 Kernel 库失败: %s\n", dlerror());
+        return;
+    }
+
+    // 尝试找 C++ 修饰的符号名
+    void* sym = dlsym(kernel_handle, "_Z13add_custom_dojPvPhS0_S0_S0_jj");
+    if (sym) {
+        g_launch_kernel = (LaunchAESKernel_t)sym;
+        fprintf(stderr, "[PipeLLM] ✅ 成功加载 NPU 加解密算子库 (C++ 符号)\n");
+        fprintf(stderr, "[PipeLLM]    Addr: %p\n", (void*)g_launch_kernel);
+    } else {
+        // 尝试 C 符号
+        sym = dlsym(kernel_handle, "add_custom_do");
+        if (sym) {
+            g_launch_kernel = (LaunchAESKernel_t)sym;
+            fprintf(stderr, "[PipeLLM] ✅ 成功加载 NPU 加解密算子库 (C 符号)\n");
+            fprintf(stderr, "[PipeLLM]    Addr: %p\n", (void*)g_launch_kernel);
+        } else {
+            fprintf(stderr, "[PipeLLM] ❌ 无法找到 add_custom_do 符号: %s\n", dlerror());
+        }
+    }
+}
 /*
  * [替换] cudaDeviceSynchronize
  */
@@ -132,22 +142,33 @@ static inline void init_encrypt_ctx(aclrtMemcpyKind kind, aclrtStream stream)
     static bool first = true;
     if (first) {
         first = false;
+        
+        // 加载NPU算子库
+        load_aes_library();
+        
         fprintf(stderr, "[PipeLLM Debug] ===== init_encrypt_ctx 开始 =====\n");
         
         // 读取环境变量
         auto enable_encrypt_env = std::getenv("PIPELLM_ENABLE_ENCRYPT");
         auto enable_decrypt_env = std::getenv("PIPELLM_ENABLE_DECRYPT");
         
+        auto enable_h2d_env = std::getenv("PIPE_ENABLE_H2D");
+        auto enable_d2h_env = std::getenv("PIPE_ENABLE_D2H");
+        
+        enable_h2d_encrypt = enable_h2d_env ? std::atoi(enable_h2d_env) != 0 : false;
+        enable_d2h_encrypt = enable_d2h_env ? std::atoi(enable_d2h_env) != 0 : false;
+        
         // bool enable_encrypt = enable_encrypt_env ? std::atoi(enable_encrypt_env) != 0 : false;
         // bool enable_decrypt = enable_decrypt_env ? std::atoi(enable_decrypt_env) != 0 : false;
-        bool enable_encrypt = true;
-        bool enable_decrypt = true;
         
-        fprintf(stderr, "[PipeLLM Debug] enable_encrypt=%d, enable_decrypt=%d\n", 
-                enable_encrypt, enable_decrypt);
+        // 内部使用全局变量控制worker初始化
+        bool global_enable_encrypt = (enable_h2d_encrypt || enable_d2h_encrypt);
+        
+        fprintf(stderr, "[PipeLLM Debug] enable_h2d_encrypt=%d, enable_d2h_encrypt=%d, global_enable=%d\n", 
+                enable_h2d_encrypt, enable_d2h_encrypt, global_enable_encrypt);
         
         // 阶段2: 只创建加密工作线程（如果启用）
-        if (enable_encrypt) {
+        if (global_enable_encrypt) {
             fprintf(stderr, "[PipeLLM Debug] 阶段2: 创建加密工作线程\n");
             
             // 简化版本，只创建1个工作线程
@@ -312,7 +333,7 @@ void assign_to_workers(void *dst, const void *src, size_t count, bool decrypt = 
 void sync_predictor()
 {
     // Caller must hold the predictor's lock
-    if (!first || !enable_encrypt) return;
+    if (!first || !(enable_h2d_encrypt || enable_d2h_encrypt)) return;
     assert(predictor.locking());
     if (!predictor.pending_commit.empty()) {
         assert(encrypt_workers_num == 1);
@@ -356,7 +377,7 @@ void sync_predictor()
 
 aclrtContext g_main_ctx = nullptr;
 HOOK_C_API HOOK_DECL_EXPORT aclError aclrtMemcpyAsync(void *dst, size_t destMax, const void *src, size_t count,
-                                                      aclrtMemcpyKind kind, aclrtStream stream)
+                                                       aclrtMemcpyKind kind, aclrtStream stream)
 {
     if (g_main_ctx == nullptr) {
         aclrtGetCurrentContext(&g_main_ctx);
@@ -366,7 +387,6 @@ HOOK_C_API HOOK_DECL_EXPORT aclError aclrtMemcpyAsync(void *dst, size_t destMax,
     }
     // 1. 初始化加密上下文
     init_encrypt_ctx(kind, stream);
-
     // 2. 基础参数检查
     if (count == 0) return ACL_SUCCESS;
     if (dst == nullptr || src == nullptr) {
@@ -379,163 +399,184 @@ HOOK_C_API HOOK_DECL_EXPORT aclError aclrtMemcpyAsync(void *dst, size_t destMax,
     }
 
     // =================================================================
-    // 4. 加密路径 (Host -> Device)
+    // 4. 加密路径 (Host -> Device) —— 全量加密
     // =================================================================
-    enable_encrypt = true;
-    if (enable_encrypt && kind == ACL_MEMCPY_HOST_TO_DEVICE) {
-        
-        // A. 懒加载算子库 (只会执行一次) - 已注释
-        
-        // B. 懒加载 NPU 资源 (Key/IV)
-        if (!m_ctx_metadata.empty()) {
-            auto &meta = *m_ctx_metadata.begin()->second;
-
-            if (meta.dev_key == nullptr) {
-                real_aclrtMalloc(&meta.dev_key, 32); 
-                real_aclrtMalloc(&meta.dev_iv, 16);
-                
-                real_aclrtMemcpyAsync(meta.dev_key, 32, meta.key, 32, ACL_MEMCPY_HOST_TO_DEVICE, stream);
-                real_aclrtMemcpyAsync(meta.dev_iv, 16, meta.init_iv, 16, ACL_MEMCPY_HOST_TO_DEVICE, stream);
-                
-                fprintf(stderr, "[PipeLLM] ✅ NPU Key/IV 内存初始化完成\n");
-            }
-            g_dev_key = meta.dev_key;
-            g_dev_iv = meta.dev_iv;
-        }
-
+    if (enable_h2d_encrypt && kind == ACL_MEMCPY_HOST_TO_DEVICE && count >= encrypt_threshold_sz) {
+        fprintf(stderr, "[PipeLLM] H2D+Encrypt: src=%p, size=%zu (NPU)\n", src, count);
+    
         predictor.lock();
-
-        // C. 调度逻辑 (Pipeline vs Serial)
-        bool parallel = true; 
-
-        if (parallel && count >= encrypt_threshold_sz) {
-            
-            // Case 1: 命中只读权重模式 (Pipeline Hit)
-            if (predictor.read_only_swap_profiled) {
-                auto &record = predictor.read_only_swap_record;
-                bool hit = src == record[predictor.read_only_swap_cur_idx].first &&
-                           count == record[predictor.read_only_swap_cur_idx].second;
-                
-                if (!hit) {
-                    goto SERIAL_FALLBACK; // 预测失败，降级
-                }
-                
-                predictor.read_only_swap_cur_idx = (predictor.read_only_swap_cur_idx + 1) % record.size();
-                predictor.read_only_swap_pred_idx = (predictor.read_only_swap_pred_idx + 1) % record.size();
-                fprintf(stderr, "[PipeLLM Debug] 命中只读交换模式\n");
-                // P1: 预取下一块 (Worker 后台加密)
-                auto &entry = record[predictor.read_only_swap_pred_idx];
-                assign_to_workers(nullptr, entry.first, entry.second, false, true, false, false, false, stream);
-                
-                // P2: 发送当前块 (Worker 发送 -> 触发 NPU 解密)
-                // [修改] 传入 stream，建立 Event 依赖
-                assign_to_workers(dst, src, count, false, false, true, false, false, stream);
-                
-                goto POST_PROCESS;
-            } 
-            
-            // Case 2: 命中其他交换集
-            else if (predictor.other_swap_set.find(std::make_pair(src, count)) != predictor.other_swap_set.end()) {
-                predictor.other_swap_set.erase(std::make_pair(src, count));
-                assign_to_workers(nullptr, src, count, false, true, false, false, false, stream);
-                assign_to_workers(dst, src, count, false, false, true, false, false, stream);
-                goto POST_PROCESS;
-            } 
-            
-            // Case 3: 模式发现阶段 (Profiling)
-            else if (!predictor.read_only_swap_profiled) {
-                fprintf(stderr, "[PipeLLM Debug] 模式发现中....\n");
-                auto &record = predictor.read_only_swap_record;
-                record.push_back(std::make_pair(src, count));
-                auto size = record.size();
-                
-                assign_to_workers(nullptr, src, count, false, true, false, false, false, stream);
-                // [修改] Profiling 阶段也传入 stream 保证正确性
-                assign_to_workers(dst, src, count, false, false, true, false, false, stream);
-                
-                sync_predictor(); 
-                bool found = true;
-                const int repeat = 32; 
-                if (size < repeat * 2 || (size % 2 == 1)) {
-                    found = false;
-                } else {
-                    auto mid = size / 2;
-                    for (int i = 0; i < size / 2; i++) {
-                        if (record[i] != record[mid + i]) {
-                            found = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (found) {
-                    fprintf(stderr, "[PipeLLM Debug] 发现重复模式! 开启预测优化\n");
-                    for (int i = 0; i < size / 2; i++) {
-                        record.pop_back();
-                    }
-                    predictor.read_only_swap_profiled = true;
-                    predictor.read_only_swap_cur_idx = (size / 2) % record.size();
-                    predictor.read_only_swap_pred_idx = (predictor.read_only_swap_cur_idx + 1) % record.size();
-                    
-                    auto &entry1 = record[predictor.read_only_swap_pred_idx];
-                    assign_to_workers(nullptr, entry1.first, entry1.second, false, true, false, false, false, stream);
-                }
-                
-                goto POST_PROCESS;
-            }
+    
+        // ==================== 情况 1: 线性预测模式（vLLM 专用） ====================
+        if (predictor.linear_mode && count == predictor.linear_stride && 0) {
+            void* predicted_next = (uint8_t*)src + predictor.linear_stride;
+            fprintf(stderr, "[PipeLLM] 线性预测命中: 当前=%p → 预测=%p\n", src, predicted_next);
+    
+            assign_to_workers(nullptr, predicted_next, count, false, true, false, false, false, stream);
+            assign_to_workers(dst, src, count, false, false, true, false, false, stream);
+            goto POST_PROCESS;
         }
-
+    
+        // ==================== 情况 2: 重复循环模式（原有） ====================
+        // if (predictor.read_only_swap_profiled) {
+        //     auto &record = predictor.read_only_swap_record;
+        //     bool hit = src == record[predictor.read_only_swap_cur_idx].first &&
+        //                count == record[predictor.read_only_swap_cur_idx].second;
+    
+        //     if (!hit) goto SERIAL_FALLBACK;
+    
+        //     predictor.read_only_swap_cur_idx = (predictor.read_only_swap_cur_idx + 1) % record.size();
+        //     predictor.read_only_swap_pred_idx = (predictor.read_only_swap_pred_idx + 1) % record.size();
+    
+        //     auto &entry = record[predictor.read_only_swap_pred_idx];
+        //     assign_to_workers(nullptr, entry.first, entry.second, false, true, false, false, false, stream);
+        //     assign_to_workers(dst, src, count, false, false, true, false, false, stream);
+        //     goto POST_PROCESS;
+        // }
+    
+        // // ==================== 情况 3: 其他已知模式 ====================
+        // else if (predictor.other_swap_set.find(std::make_pair(src, count)) != predictor.other_swap_set.end()) {
+        //     predictor.other_swap_set.erase(std::make_pair(src, count));
+        //     assign_to_workers(nullptr, src, count, false, true, false, false, false, stream);
+        //     assign_to_workers(dst, src, count, false, false, true, false, false, stream);
+        //     goto POST_PROCESS;
+        // }
+    
+        // ==================== 情况 4: 模式发现阶段（新增线性检测） ====================
+        else if (!predictor.read_only_swap_profiled && !predictor.linear_mode) {
+            // fprintf(stderr, "[PipeLLM] 模式发现中 (size=%zu)\n", count);
+    
+            auto &record = predictor.read_only_swap_record;
+            record.push_back(std::make_pair(src, count));
+    
+            assign_to_workers(nullptr, src, count, false, true, false, false, false, stream);
+            assign_to_workers(dst, src, count, false, false, true, false, false, stream);
+            sync_predictor();
+    
+            // --- 线性模式检测 ---
+            if (record.size() >= 8) {
+                auto& prev = record[record.size() - 2];
+                if (count == prev.second &&
+                    (uint8_t*)src > (uint8_t*)prev.first &&
+                    ((uint8_t*)src - (uint8_t*)prev.first) == count) {
+                    predictor.linear_count++;
+                    if (predictor.linear_count >= predictor.LINEAR_THRESHOLD) {
+                        predictor.linear_mode = true;
+                        predictor.linear_stride = count;
+                        fprintf(stderr, "[PipeLLM] ✅ 进入线性预测模式 (stride=%zu)\n", count);
+                    }
+                } else {
+                    predictor.linear_count = 0;
+                }
+            }
+    
+            // --- 原有重复模式检测 ---
+            // bool found = true;
+            // const int repeat = 32;
+            // auto size = record.size();
+            // if (size < repeat * 2 || (size % 2 == 1)) found = false;
+            // else {
+            //     auto mid = size / 2;
+            //     for (int i = 0; i < size / 2; i++) {
+            //         if (record[i] != record[mid + i]) { found = false; break; }
+            //     }
+            // }
+    
+            // if (found) {
+            //     fprintf(stderr, "[PipeLLM] 发现重复模式! 开启预测优化\n");
+            //     for (int i = 0; i < size / 2; i++) record.pop_back();
+            //     predictor.read_only_swap_profiled = true;
+            //     predictor.read_only_swap_cur_idx = (size / 2) % record.size();
+            //     predictor.read_only_swap_pred_idx = (predictor.read_only_swap_cur_idx + 1) % record.size();
+    
+            //     auto &entry1 = record[predictor.read_only_swap_pred_idx];
+            //     assign_to_workers(nullptr, entry1.first, entry1.second, false, true, false, false, false, stream);
+            // }
+            goto POST_PROCESS;
+        }
+    
     SERIAL_FALLBACK:
-        // Case 4: 串行兜底 (Serial Fallback)
-        // [修改] 传入 stream，确保 Fallback 模式下也不会出现乱序
-        assign_to_workers(nullptr, src, count, false, true, false, false, false, stream); 
-        assign_to_workers(dst, src, count, false, false, true, false, false, stream);     
-
+        assign_to_workers(nullptr, src, count, false, true, false, false, false, stream);
+        assign_to_workers(dst, src, count, false, false, true, false, false, stream);
+    
     POST_PROCESS:
         predictor.unlock();
-        // usleep(5000);
         return ACL_SUCCESS;
     }
 
-    // 5. 默认回传
+    // =================================================================
+    // 5. 解密路径 (Device -> Host) - 同步方式
+    // =================================================================
+    if (enable_d2h_encrypt && kind == ACL_MEMCPY_DEVICE_TO_HOST && count >= decrypt_threshold_sz) {
+        fprintf(stderr, "[PipeLLM] D2H+Decrypt START: src=%p, dst=%p, size=%zu\n", src, dst, count);
+
+        if (m_ctx_metadata.empty()) {
+            return real_aclrtMemcpyAsync(dst, destMax, src, count, kind, stream);
+        }
+
+        auto &meta = *m_ctx_metadata.begin()->second;
+        if (meta.dev_key == nullptr) {
+            real_aclrtMalloc(&meta.dev_key, 32);
+            real_aclrtMalloc(&meta.dev_iv, 16);
+            real_aclrtMemcpyAsync(meta.dev_key, 32, meta.key, 32, ACL_MEMCPY_HOST_TO_DEVICE, stream);
+            real_aclrtMemcpyAsync(meta.dev_iv, 16, meta.init_iv, 16, ACL_MEMCPY_HOST_TO_DEVICE, stream);
+            fprintf(stderr, "[PipeLLM] ✅ NPU Key/IV 内存初始化完成\n");
+        }
+        g_dev_key = meta.dev_key;
+        g_dev_iv = meta.dev_iv;
+
+        // 同步解密
+        static void* d2h_temp_in = nullptr;
+        static void* d2h_temp_out = nullptr;
+        static size_t d2h_temp_size = 0;
+        if (d2h_temp_size < count) {
+            if (d2h_temp_in) real_aclrtFree(d2h_temp_in);
+            if (d2h_temp_out) real_aclrtFree(d2h_temp_out);
+            real_aclrtMalloc(&d2h_temp_in, count);
+            real_aclrtMalloc(&d2h_temp_out, count);
+            d2h_temp_size = count;
+        }
+
+        // Step1: D2D
+        fprintf(stderr, "[PipeLLM] D2H Step1 D2D: src=%p -> tmp_in=%p, size=%zu\n", src, d2h_temp_in, count);
+        real_aclrtMemcpyAsync(d2h_temp_in, count, src, count, ACL_MEMCPY_DEVICE_TO_DEVICE, stream);
+
+        // Step2: Kernel
+        fprintf(stderr, "[PipeLLM] D2H Step2 Kernel: tmp_in=%p, key=%p, iv=%p, tmp_out=%p, size=%zu\n",
+                d2h_temp_in, meta.dev_key, meta.dev_iv, d2h_temp_out, count);
+        if (g_launch_kernel && meta.dev_key && meta.dev_iv) {
+            uint32_t blockDim = (count > 131072) ? 8 : (count > 32768) ? 4 : (count > 4096) ? 2 : 1;
+            // 使用正确的函数指针类型调用
+            typedef void (*NPUKernel_t)(uint32_t, void*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint32_t, uint32_t);
+            ((NPUKernel_t)g_launch_kernel)(
+                blockDim,
+                stream,
+                (uint8_t*)d2h_temp_in,
+                (uint8_t*)meta.dev_key,
+                (uint8_t*)meta.dev_iv,
+                (uint8_t*)d2h_temp_out,
+                (uint32_t)count,
+                0
+            );
+        }
+
+        // Step3: D2H
+        fprintf(stderr, "[PipeLLM] D2H Step3 D2H: tmp_out=%p -> dst=%p, size=%zu\n", d2h_temp_out, dst, count);
+        real_aclrtMemcpyAsync(dst, destMax, d2h_temp_out, count, ACL_MEMCPY_DEVICE_TO_HOST, stream);
+
+        // Sync
+        real_aclrtSynchronizeStream(stream);
+        fprintf(stderr, "[PipeLLM] D2H+Decrypt END: dst=%p, size=%zu\n", dst, count);
+
+        return ACL_SUCCESS;
+    }
+
+    // 6. 默认回传
+    if (count >= 100000) {
+        fprintf(stderr, "[PipeLLM] D2H: dst=%p, src=%p, size=%zu\n", dst, src, count);
+    }
     return real_aclrtMemcpyAsync(dst, destMax, src, count, kind, stream);
 }
 
-// HOOK_C_API HOOK_DECL_EXPORT aclError aclrtMemcpyAsync(void *dst, size_t destMax, const void *src, size_t count,
-//     aclrtMemcpyKind kind, aclrtStream stream)
-// {
-// // 1. 初始化上下文 (保留原逻辑)
-// init_encrypt_ctx(kind, stream);
-
-// // 2. 基础检查 (保留原逻辑)
-// if (count == 0) return ACL_SUCCESS;
-
-// // [串行测试专用修改] 拦截 Host->Device 传输
-// if (kind == ACL_MEMCPY_HOST_TO_DEVICE) {
-
-// // A. 模拟加密耗时 (Simulate Encryption)
-// // 假设 AES-CTR 速度 ~2GB/s。公式: count / 2000 = us
-// if (count > 0) {
-// long long delay_us = count / 2000;
-// if (delay_us < 1) delay_us = 1; // 至少耗时1us
-// usleep(delay_us); 
-// }
-
-// B. 执行真实传输 (Transfer)
-// 注意：这里使用 real_aclrtMemcpyAsync 直接发送原始数据
-// 对于性能基准测试，数据内容不重要，重要的是传输行为
-// aclError ret = real_aclrtMemcpyAsync(dst, destMax, src, count, kind, stream);
-
-// // C. 强制同步 (Force Sync) -> 实现串行化
-// // 这一步会让 CPU 死等 NPU 完成，彻底破坏流水线
-// aclrtSynchronizeStream(stream);
-
-// return ret;
-// }
-
-// // 3. 其他类型 (D2D, D2H) 直接放行 (保留原逻辑)
-// return real_aclrtMemcpyAsync(dst, destMax, src, count, kind, stream);
-// }
 
 
 
@@ -566,3 +607,26 @@ void EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx)
     real_EVP_CIPHER_CTX_free(ctx);
 }
 
+
+// 修正后的桥接函数
+extern "C" HOOK_DECL_EXPORT aclError aclrtUseStreamResInCurrentThread(aclrtStream stream) {
+    // 定义函数指针类型，匹配 aclError(aclrtStream)
+    typedef aclError (*func_ptr)(aclrtStream);
+    
+    // 1. 优先寻找带 Impl 后缀的真实实现（CANN 8.5.1 内部实际使用的符号）
+    static func_ptr real_func = (func_ptr)dlsym(RTLD_NEXT, "aclrtUseStreamResInCurrentThreadImpl");
+    
+    if (!real_func) {
+        // 2. 如果没找到 Impl，尝试找不带后缀的原始符号
+        // 注意：这里必须用 RTLD_NEXT 避免死循环指向自己
+        real_func = (func_ptr)dlsym(RTLD_NEXT, "aclrtUseStreamResInCurrentThread");
+    }
+
+    if (real_func) {
+        return real_func(stream);
+    }
+
+    // 3. 兜底逻辑：如果底层库里真的两个符号都没有，
+    // 我们返回成功(0)，防止 Python 因为加载 .so 失败而直接崩溃
+    return ACL_SUCCESS; 
+}

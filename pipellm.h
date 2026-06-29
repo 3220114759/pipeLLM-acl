@@ -45,7 +45,7 @@ extern size_t encrypt_magic_sz;
 extern size_t decrypt_magic_sz;
 // const static size_t encrypt_threshold_sz = 0x4c000;
 // const static size_t decrypt_threshold_sz = 0x4c000;
-const static size_t encrypt_threshold_sz = 1024;
+const static size_t encrypt_threshold_sz = 0;
 const static size_t decrypt_threshold_sz = 0;
 const static size_t decrypt_threshold_top = 0x80000;
 const static size_t block_unit = 1 << 20;
@@ -228,23 +228,27 @@ struct decrypt_worker_entry {
 
 uint64_t next_iv(unsigned char cur_iv[], unsigned char dest_iv[], uint64_t incr = 1);
 
-// struct Predictor 定义 (保持原样)
 struct Predictor {
-    // For read-only swap
+    // For read-only swap（原有）
     std::vector<std::pair<const void *, size_t>> read_only_swap_record;
-    bool read_only_swap_profiled;
-    int read_only_swap_cur_idx;
-    int read_only_swap_pred_idx;
+    bool read_only_swap_profiled = false;
+    int read_only_swap_cur_idx = 0;
+    int read_only_swap_pred_idx = 0;
 
-    // For other swaps
+    // For other swaps（原有）
     std::vector<std::pair<const void *, size_t>> other_swap_record;
     std::set<std::pair<const void *, size_t>> other_swap_set;
 
-    // For commit
+    // For commit / decrypt（原有）
     std::deque<std::pair<const void*, std::pair<void *, size_t>>> pending_commit;
-
-    // For decryption
     std::deque<decryption_task> pending_decrypt;
+
+    // ==================== 新增：线性预测模式（vLLM 支持） ====================
+    bool linear_mode = false;
+    void* linear_base = nullptr;
+    size_t linear_stride = 0;
+    int linear_count = 0;
+    const int LINEAR_THRESHOLD = 4;   // 连续4次相同大小 + 地址递增 → 进入线性模式
 
     void lock() {
         while (this->locking()) {
@@ -262,7 +266,7 @@ struct Predictor {
         return this->_lock;
     }
 private:
-    bool _lock;
+    bool _lock = false;
 };
 
 // bind_core 函数 (保持原样)
